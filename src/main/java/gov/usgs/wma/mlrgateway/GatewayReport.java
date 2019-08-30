@@ -3,6 +3,8 @@ package gov.usgs.wma.mlrgateway;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,14 +15,17 @@ public class GatewayReport {
 	private String inputFileName;
 	private String reportDateTime;
 	private String userName;
+	private Logger log = LoggerFactory.getLogger(GatewayReport.class);
 	private List<StepReport> workflowSteps;
 	private List<SiteReport> sites;
 	
 	public GatewayReport() {};
 
-	public GatewayReport(String name, String inputFileName) {
+	public GatewayReport(String name, String inputFileName, String userName, String reportDateTime) {
 		this.name = name;
 		this.inputFileName = inputFileName;
+		this.userName = userName;
+		this.reportDateTime = reportDateTime;
 		sites = new ArrayList<>();
 		workflowSteps = new ArrayList<>();
 	}
@@ -96,6 +101,7 @@ public class GatewayReport {
 		try {
 			return mapper.writeValueAsString(this);
 		} catch (JsonProcessingException e) {
+			log.error("An error occured while trying to cprint the report string: ", e);
 			return "Unable to get Report";
 		}
 	}
@@ -105,6 +111,7 @@ public class GatewayReport {
 		try {
 			return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
 		} catch (JsonProcessingException e) {
+			log.error("An error occured while trying to cprint the report string: ", e);
 			return "Unable to get Report";
 		}
 	}

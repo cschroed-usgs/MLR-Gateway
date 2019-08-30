@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.time.Instant;
 import java.time.temporal.Temporal;
 import java.util.HashMap;
 import org.apache.http.HttpStatus;
@@ -52,7 +51,6 @@ public class NotificationService {
 	public void sendNotification(List<String> recipientList, String subject, String user, String attachmentFileName, UserSummaryReport report) {
 		ObjectMapper mapper = new ObjectMapper();
 		String messageJson;
-		report.setReportDateTime(Instant.now().toString());
 		HashMap<String, Object> messageMap = buildRequestMap(recipientList, subject, user, attachmentFileName, report);
 
 		try {
@@ -102,14 +100,16 @@ public class NotificationService {
 		String workflowFailureMsg = "";
 		String siteMsg = "";
 		if (report.getName() == "Complete Export Workflow"){
-			StepReport workflowFailureStep = report.getWorkflowSteps().stream()
+			List<StepReport> workflowErrorSteps = report.getWorkflowSteps().stream()
 					.filter(w -> w.getName() == "Complete Export Workflow" && w.isSuccess() == false)
-					.collect(Collectors.toList()).get(0);
-			String errorPattern = "{0} Failed: {1}\n\n";
-			MessageFormat message = new MessageFormat(errorPattern);
-			Object[] arguments = {workflowFailureStep.getName(), getDetailErrorMessage(workflowFailureStep.getDetails())};
-			workflowFailureMsg = message.format(arguments);
-			errorReport += workflowFailureMsg;
+					.collect(Collectors.toList());
+			if(workflowErrorSteps.size() > 0) {
+				String errorPattern = "{0} Failed: {1}\n\n";
+				MessageFormat message = new MessageFormat(errorPattern);
+				Object[] arguments = {workflowErrorSteps.get(0).getName(), getDetailErrorMessage(workflowErrorSteps.get(0).getDetails())};
+				workflowFailureMsg = message.format(arguments);
+				errorReport += workflowFailureMsg;
+			}
 		} else {
 			if (report.getWorkflowSteps().size() > 0){
 				List<StepReport> workflowFailureSteps = report.getWorkflowSteps().stream()
