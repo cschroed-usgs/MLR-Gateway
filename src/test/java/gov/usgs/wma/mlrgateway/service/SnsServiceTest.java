@@ -22,7 +22,7 @@ public class SnsServiceTest {
 	@BeforeEach
 	public void setUp() {
 		client = mock(SnsClient.class);
-		instance = new SnsService();
+		instance = new SnsService(client);
 		requestCaptor = ArgumentCaptor.forClass(PublishRequest.class);
 	}
 	@Test
