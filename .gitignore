@@ -18,3 +18,4 @@
 **/*.chain
 **/*.key
 /run_app.sh
+/nbproject/
