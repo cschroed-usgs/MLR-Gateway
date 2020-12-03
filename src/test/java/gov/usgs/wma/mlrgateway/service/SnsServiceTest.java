@@ -7,13 +7,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import org.mockito.runners.MockitoJUnitRunner;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
+
 public class SnsServiceTest {
-	
-	public SnsServiceTest() {
-	}
+
 
 	private SnsService instance;
 	private SnsClient client;
