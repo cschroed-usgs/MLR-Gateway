@@ -10,6 +10,5 @@ public class ModificationChange<T> extends Change<T> {
 		this.previous = previous;
 		this.next = next;
 		type = ChangeType.MODIFICATION;
-
 	}
 }

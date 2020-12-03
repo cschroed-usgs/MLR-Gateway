@@ -2,12 +2,8 @@ package gov.usgs.wma.mlrgateway.service;
 
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sns.SnsClient;
-import software.amazon.awssdk.services.sns.SnsClientBuilder;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
-import software.amazon.awssdk.services.sns.model.PublishResponse;
-import software.amazon.awssdk.services.sns.model.SnsException;
 
 @Service
 public class SnsService {
