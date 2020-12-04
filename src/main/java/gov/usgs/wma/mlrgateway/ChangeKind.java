@@ -1,7 +1,7 @@
 package gov.usgs.wma.mlrgateway;
 
 
-public enum ChangeType {
+public enum ChangeKind {
 	CREATION,
 	MODIFICATION
 }

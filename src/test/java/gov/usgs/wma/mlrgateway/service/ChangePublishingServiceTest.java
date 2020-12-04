@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.usgs.wma.mlrgateway.BaseSpringTest;
 import static gov.usgs.wma.mlrgateway.BaseSpringTest.getAdd;
-import gov.usgs.wma.mlrgateway.CreationChange;
-import gov.usgs.wma.mlrgateway.ModificationChange;
+import gov.usgs.wma.mlrgateway.Creation;
+import gov.usgs.wma.mlrgateway.Modification;
 import gov.usgs.wma.mlrgateway.SiteReport;
 import gov.usgs.wma.mlrgateway.StepReport;
 import static gov.usgs.wma.mlrgateway.service.ChangePublishingService.STEP_NAME;
@@ -38,8 +38,7 @@ public class ChangePublishingServiceTest extends BaseSpringTest {
 		
 		SiteReport siteReport = new SiteReport("USGS", "12345678");
 		ArgumentCaptor<PublishRequest> requestCaptor = ArgumentCaptor.forClass(PublishRequest.class);
-		instance.publish(
-			new CreationChange<>(getAdd()),
+		instance.publish(new Creation<>(getAdd()),
 			siteReport
 		);
 		verify(client).publish(requestCaptor.capture());
@@ -57,8 +56,7 @@ public class ChangePublishingServiceTest extends BaseSpringTest {
 		);
 		
 		SiteReport siteReport = new SiteReport("USGS", "12345678");
-		instance.publish(
-			new CreationChange<>(getAdd()),
+		instance.publish(new Creation<>(getAdd()),
 			siteReport
 		);
 		verify(client).publish(any(PublishRequest.class));
@@ -79,8 +77,7 @@ public class ChangePublishingServiceTest extends BaseSpringTest {
 		);
 		
 		SiteReport siteReport = new SiteReport("USGS", "12345678");
-		instance.publish(
-			new ModificationChange<>(
+		instance.publish(new Modification<>(
 				getAdd(),
 				getUpdate()
 			),
@@ -107,8 +104,7 @@ public class ChangePublishingServiceTest extends BaseSpringTest {
 		);
 		
 		SiteReport siteReport = new SiteReport("USGS", "12345678");
-		instance.publish(
-			new CreationChange<>(getAdd()),
+		instance.publish(new Creation<>(getAdd()),
 			siteReport
 		);
 		verify(client, never()).publish(any(PublishRequest.class));
@@ -130,8 +126,7 @@ public class ChangePublishingServiceTest extends BaseSpringTest {
 		);
 		
 		SiteReport siteReport = new SiteReport("USGS", "12345678");
-		instance.publish(
-			new CreationChange<>(getAdd()),
+		instance.publish(new Creation<>(getAdd()),
 			siteReport
 		);
 		

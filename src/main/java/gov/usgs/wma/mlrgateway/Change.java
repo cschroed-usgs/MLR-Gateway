@@ -5,12 +5,12 @@ import java.util.Map;
 
 /**
  * Represents a change of an object of parameterized type `T`. Instances are 
- * serialized and published to external systems.
+ * serialized to JSON and published to external systems.
  */
 
 public abstract class Change<T> {
-	protected ChangeType type;
-	private static final String version = "1.0";
+	protected ChangeKind kind; //This field allows subclasses to indicate their type when serialized as JSON
+	private final String version = "1.0";
 	protected T previous;
 	protected T next;
 	
@@ -22,21 +22,21 @@ public abstract class Change<T> {
 	}
 
 	/**
-	 * @return the type
+	 * @return the kind
 	 */
-	public ChangeType getType() {
-		return type;
+	public ChangeKind getKind() {
+		return kind;
 	}
 
 	/**
-	 * @return the previous
+	 * @return the previous state
 	 */
 	public T getPrevious() {
 		return previous;
 	}
 
 	/**
-	 * @return the next
+	 * @return the next state
 	 */
 	public T getNext() {
 		return next;

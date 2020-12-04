@@ -4,19 +4,19 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-public class CreationChangeTest {
+public class CreationTest {
 
 	@Test
 	public void testHappyConstructor() {
-		CreationChange<String> instance = new CreationChange<>("foo");
+		Creation<String> instance = new Creation<>("foo");
 		assertNull(instance.getPrevious());
 		assertEquals("foo", instance.getNext());
-		assertEquals(ChangeType.CREATION, instance.getType());
+		assertEquals(ChangeKind.CREATION, instance.getKind());
 	}
 	
 	@Test
 	public void testNullNewObject() {
-		assertThrows(NullPointerException.class, () -> new CreationChange(null));
+		assertThrows(NullPointerException.class, () -> new Creation(null));
 	}
 	
 }

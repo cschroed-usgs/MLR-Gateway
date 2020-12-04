@@ -14,10 +14,10 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.hystrix.exception.HystrixBadRequestException;
 import gov.usgs.wma.mlrgateway.Change;
-import gov.usgs.wma.mlrgateway.CreationChange;
+import gov.usgs.wma.mlrgateway.Creation;
 
 import gov.usgs.wma.mlrgateway.FeignBadResponseWrapper;
-import gov.usgs.wma.mlrgateway.ModificationChange;
+import gov.usgs.wma.mlrgateway.Modification;
 import gov.usgs.wma.mlrgateway.SiteReport;
 import gov.usgs.wma.mlrgateway.StepReport;
 import gov.usgs.wma.mlrgateway.controller.WorkflowController;
@@ -119,11 +119,11 @@ public class LegacyWorkflowService {
 					if (isAddTransaction) {
 						json = legacyCruService.addTransaction(ml.get(AGENCY_CODE), ml.get(SITE_NUMBER), json, siteReport);
 						fileExportService.exportAdd(ml.get(AGENCY_CODE).toString(), ml.get(SITE_NUMBER).toString(), json, siteReport);
-						change = new CreationChange<>(ml);
+						change = new Creation<>(ml);
 					} else {
 						json = legacyCruService.patchTransaction(ml.get(AGENCY_CODE), ml.get(SITE_NUMBER), json, siteReport);
 						fileExportService.exportUpdate(ml.get(AGENCY_CODE).toString(), ml.get(SITE_NUMBER).toString(), json, siteReport);
-						change = new ModificationChange<>(existingRecord, ml);
+						change = new Modification<>(existingRecord, ml);
 					}
 					changePublishingService.publish(change, siteReport);
 					WorkflowController.addSiteReport(siteReport);
