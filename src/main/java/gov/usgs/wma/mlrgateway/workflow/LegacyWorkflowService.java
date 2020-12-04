@@ -13,11 +13,15 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.hystrix.exception.HystrixBadRequestException;
+import gov.usgs.wma.mlrgateway.Change;
+import gov.usgs.wma.mlrgateway.CreationChange;
 
 import gov.usgs.wma.mlrgateway.FeignBadResponseWrapper;
+import gov.usgs.wma.mlrgateway.ModificationChange;
 import gov.usgs.wma.mlrgateway.SiteReport;
 import gov.usgs.wma.mlrgateway.StepReport;
 import gov.usgs.wma.mlrgateway.controller.WorkflowController;
+import gov.usgs.wma.mlrgateway.service.ChangePublishingService;
 import gov.usgs.wma.mlrgateway.service.DdotService;
 import gov.usgs.wma.mlrgateway.service.FileExportService;
 import gov.usgs.wma.mlrgateway.service.LegacyCruService;
@@ -32,6 +36,7 @@ public class LegacyWorkflowService {
 	private LegacyValidatorService legacyValidatorService;
 	private LegacyCruService legacyCruService;
 	private FileExportService fileExportService;
+	private ChangePublishingService changePublishingService;
 	
 	public static final String ID = "id";
 	public static final String AGENCY_CODE = "agencyCode";
@@ -68,12 +73,13 @@ public class LegacyWorkflowService {
 	
 	@Autowired
 	public LegacyWorkflowService(DdotService ddotService, LegacyCruService legacyCruService, LegacyTransformerService transformService, 
-			LegacyValidatorService legacyValidatorService, FileExportService fileExportService) {
+			LegacyValidatorService legacyValidatorService, FileExportService fileExportService, ChangePublishingService changePublishingService) {
 		this.ddotService = ddotService;
 		this.legacyCruService = legacyCruService;
 		this.transformService = transformService;
 		this.legacyValidatorService = legacyValidatorService;
 		this.fileExportService = fileExportService;
+		this.changePublishingService = changePublishingService;
 	}
 
 	public void completeWorkflow(MultipartFile file) throws HystrixBadRequestException {
@@ -109,15 +115,17 @@ public class LegacyWorkflowService {
 					
 					ml = transformService.transformGeo(ml, siteReport);
 					json = mlToJson(ml);
-
+					Change<Map<String, Object>> change;
 					if (isAddTransaction) {
 						json = legacyCruService.addTransaction(ml.get(AGENCY_CODE), ml.get(SITE_NUMBER), json, siteReport);
 						fileExportService.exportAdd(ml.get(AGENCY_CODE).toString(), ml.get(SITE_NUMBER).toString(), json, siteReport);
+						change = new CreationChange<>(ml);
 					} else {
 						json = legacyCruService.patchTransaction(ml.get(AGENCY_CODE), ml.get(SITE_NUMBER), json, siteReport);
 						fileExportService.exportUpdate(ml.get(AGENCY_CODE).toString(), ml.get(SITE_NUMBER).toString(), json, siteReport);
+						change = new ModificationChange<>(existingRecord, ml);
 					}
-
+					changePublishingService.publish(change, siteReport);
 					WorkflowController.addSiteReport(siteReport);
 				} else {
 					throw new FeignBadResponseWrapper(HttpStatus.SC_BAD_REQUEST, null, "{\"error_message\": \"Validation failed due to a missing transaction type.\"}");

@@ -31,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import gov.usgs.wma.mlrgateway.BaseSpringTest;
 import gov.usgs.wma.mlrgateway.GatewayReport;
 import gov.usgs.wma.mlrgateway.controller.WorkflowController;
+import gov.usgs.wma.mlrgateway.service.ChangePublishingService;
 import gov.usgs.wma.mlrgateway.service.DdotService;
 import gov.usgs.wma.mlrgateway.service.DdotServiceTest;
 import gov.usgs.wma.mlrgateway.service.FileExportService;
@@ -51,7 +52,9 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 	private LegacyCruService legacyCruService;
 	@MockBean
 	private FileExportService fileExportService;
-
+	@MockBean
+	private ChangePublishingService changePublishingService;
+	
 	private LegacyWorkflowService service;
 	private MockHttpServletResponse response;
 	private String reportName = "TEST Legacy Workflow";
@@ -66,7 +69,7 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 
 	@BeforeEach
 	public void init() {
-		service = new LegacyWorkflowService(ddotService, legacyCruService, transformService, legacyValidatorService, fileExportService);
+		service = new LegacyWorkflowService(ddotService, legacyCruService, transformService, legacyValidatorService, fileExportService, changePublishingService);
 		response = new MockHttpServletResponse();
 		WorkflowController.setReport(new GatewayReport(reportName, fileName, userName, reportDate));
 	}

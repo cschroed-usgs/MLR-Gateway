@@ -1,6 +1,7 @@
 package gov.usgs.wma.mlrgateway;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StepReport {
@@ -51,6 +52,43 @@ public class StepReport {
 	}
 	public void setDetails(String details) {
 		this.details = details;
+	}
+
+	@Override
+	public int hashCode() {
+		int hash = 5;
+		hash = 59 * hash + Objects.hashCode(this.name);
+		hash = 59 * hash + Objects.hashCode(this.httpStatus);
+		hash = 59 * hash + (this.success ? 1 : 0);
+		hash = 59 * hash + Objects.hashCode(this.details);
+		return hash;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final StepReport other = (StepReport) obj;
+		if (this.success != other.success) {
+			return false;
+		}
+		if (!Objects.equals(this.name, other.name)) {
+			return false;
+		}
+		if (!Objects.equals(this.details, other.details)) {
+			return false;
+		}
+		if (!Objects.equals(this.httpStatus, other.httpStatus)) {
+			return false;
+		}
+		return true;
 	}
 
 }

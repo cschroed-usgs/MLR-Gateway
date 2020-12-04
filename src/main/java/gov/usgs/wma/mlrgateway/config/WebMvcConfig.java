@@ -2,6 +2,8 @@ package gov.usgs.wma.mlrgateway.config;
 
 import java.time.Clock;
 import java.util.concurrent.TimeUnit;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,5 +34,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
 	@Bean
 	public Clock clock() {
 		return Clock.systemDefaultZone();
+	}
+	
+	@Value("${SnsChangeTopicArn}")
+	private String snsChangeTopicArn;
+	
+	@Bean
+	@Qualifier("SnsChangeTopicArn")
+	public String snsChangeTopicArn() {
+		return snsChangeTopicArn;
 	}
 }
