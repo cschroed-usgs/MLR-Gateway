@@ -37,8 +37,10 @@ public class ChangePublishingServiceTest extends BaseSpringTest {
 		);
 		
 		SiteReport siteReport = new SiteReport("USGS", "12345678");
+		siteReport.setTransactionType("A");
 		ArgumentCaptor<PublishRequest> requestCaptor = ArgumentCaptor.forClass(PublishRequest.class);
-		instance.publish(new Creation<>(getAdd()),
+		instance.publish(
+			new Creation<>(getAdd()),
 			siteReport
 		);
 		verify(client).publish(requestCaptor.capture());
@@ -56,7 +58,9 @@ public class ChangePublishingServiceTest extends BaseSpringTest {
 		);
 		
 		SiteReport siteReport = new SiteReport("USGS", "12345678");
-		instance.publish(new Creation<>(getAdd()),
+		siteReport.setTransactionType("A");
+		instance.publish(
+			new Creation<>(getAdd()),
 			siteReport
 		);
 		verify(client).publish(any(PublishRequest.class));
@@ -77,9 +81,11 @@ public class ChangePublishingServiceTest extends BaseSpringTest {
 		);
 		
 		SiteReport siteReport = new SiteReport("USGS", "12345678");
-		instance.publish(new Modification<>(
-				getAdd(),
-				getUpdate()
+		siteReport.setTransactionType("M");
+		instance.publish(
+			new Modification<>(
+				getAdd(),//before
+				getUpdate()//after
 			),
 			siteReport
 		);
@@ -104,9 +110,16 @@ public class ChangePublishingServiceTest extends BaseSpringTest {
 		);
 		
 		SiteReport siteReport = new SiteReport("USGS", "12345678");
-		instance.publish(new Creation<>(getAdd()),
-			siteReport
-		);
+		siteReport.setTransactionType("A");
+		RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+			instance.publish(
+				new Creation<>(getAdd()),
+				siteReport
+			);
+		});
+		
+		assertEquals(ChangePublishingService.SERIALIZATION_ERROR, ex.getMessage());
+		
 		verify(client, never()).publish(any(PublishRequest.class));
 		StepReport actualStepReport = siteReport.getSteps().get(0);
 		assertEquals(
@@ -124,12 +137,17 @@ public class ChangePublishingServiceTest extends BaseSpringTest {
 			SNS_TOPIC_ARN,
 			GOOD_OBJECT_MAPPER
 		);
-		
+
 		SiteReport siteReport = new SiteReport("USGS", "12345678");
-		instance.publish(new Creation<>(getAdd()),
-			siteReport
-		);
-		
+		RuntimeException ex = assertThrows(RuntimeException.class, () -> {
+			instance.publish(
+				new Creation<>(getAdd()),
+				siteReport
+			);
+		});
+
+		assertEquals(ChangePublishingService.PUBLISHING_ERROR, ex.getMessage());
+
 		verify(client).publish(any(PublishRequest.class));
 		StepReport actualStepReport = siteReport.getSteps().get(0);
 		assertEquals(

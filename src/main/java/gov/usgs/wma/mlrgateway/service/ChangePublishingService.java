@@ -28,8 +28,8 @@ public class ChangePublishingService {
 	public static final String GROUP_ID= "monitoring-location-changes";
 	public static final String STEP_NAME = "Publish Change To Other WMA Cloud Apps";
 	public static final String STEP_SUCCESS = "Successfully published change to monitoring location";
-	public static final String SERIALIZATION_ERROR = "{\"error_message\": \"Failed to serialize change. Aborted before publishing.\"}";
-	public static final String PUBLISHING_ERROR = "{\"error_message\": \"Failed while publishing.\"}";
+	public static final String SERIALIZATION_ERROR = "Failed to serialize change. Aborted before publishing to SNS.";
+	public static final String PUBLISHING_ERROR = "Failed while publishing to SNS";
 	
 	private static final Logger LOG = LoggerFactory.getLogger(ChangePublishingService.class);
 	
@@ -61,12 +61,15 @@ public class ChangePublishingService {
 					.messageDeduplicationId(deduplicationId)
 					.build();
 				snsClient.publish(request);
+				
 				LOG.debug(
-					"Successfully published change\tTopic ARN=%s\tGroup ID=%s\tDeduplication Id=%s\tMessage=%s",
-					snsChangeTopicArn,
-					GROUP_ID,
-					deduplicationId,
-					serializedChange
+					String.format(
+						"Successfully published change\tTopic ARN=%s\tGroup ID=%s\tDeduplication Id=%s\tMessage=%s",
+						snsChangeTopicArn,
+						GROUP_ID,
+						deduplicationId,
+						serializedChange
+					)
 				);
 				siteReport.addStepReport(successfulStepReport());
 			} catch (Exception ex) {
@@ -80,6 +83,7 @@ public class ChangePublishingService {
 				);
 				LOG.error(msg, ex);
 				siteReport.addStepReport(publishingErrorStepReport());
+				throw new RuntimeException(PUBLISHING_ERROR, ex);
 			}
 		} catch (JsonProcessingException ex) {
 			String msg = String.format(
@@ -91,6 +95,7 @@ public class ChangePublishingService {
 			);
 			LOG.error(msg, ex);
 			siteReport.addStepReport(serializationErrorStepReport());
+			throw new RuntimeException(SERIALIZATION_ERROR, ex);
 		}
 	}
 
@@ -106,6 +111,7 @@ public class ChangePublishingService {
 	public static StepReport serializationErrorStepReport() {
 		return new StepReport(
 			STEP_NAME,
+			//there isn't a real HTTP status code that applies here, but 400 seems more applicable than 500 because it's an error on our side, not on the SNS side
 			HttpStatus.SC_BAD_REQUEST,
 			false,
 			SERIALIZATION_ERROR
@@ -115,6 +121,7 @@ public class ChangePublishingService {
 	public static StepReport publishingErrorStepReport() {
 		return new StepReport(
 			STEP_NAME,
+			//The AWS SDK doesn't supply an HTTP Status code, but 500 seems more applicable than 400 because it's more likely to be an error on the SNS side, not our side.
 			HttpStatus.SC_INTERNAL_SERVER_ERROR,
 			false,
 			PUBLISHING_ERROR
