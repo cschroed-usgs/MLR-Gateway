@@ -262,7 +262,7 @@ public class LegacyWorkflowService {
 				changePublishingService.publish(
 					new Modification<>(
 						previousMonitoringLocation,
-						updatedMonitoringLocation
+						monitoringLocation
 					),
 					newSiteReport
 				);

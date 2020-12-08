@@ -307,7 +307,11 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		Map<String, Object> mlValid = new HashMap<>(ml);
 		String updatedMl = "{}";
 		mlValid.put("validation",legacyValidation);
-
+		
+		Map<String, Object> newMl = getUpdatePK();
+		newMl.put(LegacyWorkflowService.AGENCY_CODE, newAgencyCode);
+		newMl.put(LegacyWorkflowService.SITE_NUMBER, newSiteNumber);
+		
 		given(legacyCruService.getMonitoringLocation(any(), any(), anyBoolean(), any())).willReturn(ml);
 		given(legacyValidatorService.doPKValidation(anyMap(), anyMap(), any())).willReturn(mlValid);
 		given(legacyCruService.updateTransaction(anyString(), anyString(), any())).willReturn(updatedMl);
@@ -318,7 +322,13 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		verify(legacyValidatorService).doPKValidation(anyMap(), anyMap(), any());
 		verify(legacyCruService).updateTransaction(anyString(), anyString(), any());
 		verify(fileExportService).exportChange(anyString(), any());
-		verify(changePublishingService).publish(any(Modification.class), any());
+		
+		ArgumentCaptor<Modification<Map<String, Object>>> captor = ArgumentCaptor.forClass(Modification.class);
+		verify(changePublishingService).publish(captor.capture(), any());
+		Modification<Map<String, Object>> actualModification = captor.getValue();
+		assertEquals(ml, actualModification.getPrevious());
+		assertEquals(newMl, actualModification.getNext());
+		
 		assertTrue(rtn.getSites().get(0).isSuccess());
 		assertEquals(rtn.getSites().get(0).getTransactionType(), LegacyWorkflowService.TRANSACTION_TYPE_UPDATE);
 	}
