@@ -27,6 +27,7 @@ import gov.usgs.wma.mlrgateway.service.FileExportService;
 import gov.usgs.wma.mlrgateway.service.LegacyCruService;
 import gov.usgs.wma.mlrgateway.service.LegacyValidatorService;
 import gov.usgs.wma.mlrgateway.service.LegacyTransformerService;
+import java.util.Collections;
 
 @Service
 public class LegacyWorkflowService {
@@ -191,6 +192,7 @@ public class LegacyWorkflowService {
 	
 	public void updatePrimaryKeyWorkflow(String oldAgencyCode, String oldSiteNumber, String newAgencyCode, String newSiteNumber, String reasonText) throws HystrixBadRequestException {
 		String json;
+		Map<String, Object> previousMonitoringLocation = new HashMap<>();
 		Map<String, Object> monitoringLocation = new HashMap<>();
 		Map<String, Object> monitoringLocationToValidate = new HashMap<>();
 		Map<String, Object> updatedMonitoringLocation = new HashMap<>();
@@ -205,7 +207,8 @@ public class LegacyWorkflowService {
 		LOG.trace("Start processing primary key update transaction [" + oldAgencyCode + "-" + oldSiteNumber + " to " + newAgencyCode + "-" + newSiteNumber + "] ");
 		
 		try {
-			monitoringLocation = legacyCruService.getMonitoringLocation(oldAgencyCode, oldSiteNumber, false, oldSiteReport);
+			previousMonitoringLocation = Collections.unmodifiableMap(legacyCruService.getMonitoringLocation(oldAgencyCode, oldSiteNumber, false, oldSiteReport));
+			monitoringLocation = new HashMap<>(previousMonitoringLocation);
 			WorkflowController.addSiteReport(oldSiteReport);
 		} catch (Exception e) {
 			if(e instanceof FeignBadResponseWrapper){
@@ -256,6 +259,13 @@ public class LegacyWorkflowService {
 				json = mlToJson(exportChangeObject);
 				
 				fileExportService.exportChange(json, newSiteReport);
+				changePublishingService.publish(
+					new Modification<>(
+						previousMonitoringLocation,
+						updatedMonitoringLocation
+					),
+					newSiteReport
+				);
 				WorkflowController.addSiteReport(newSiteReport);
 			}
 		} catch (Exception e) {

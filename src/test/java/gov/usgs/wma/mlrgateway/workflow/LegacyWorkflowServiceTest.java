@@ -29,7 +29,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import gov.usgs.wma.mlrgateway.BaseSpringTest;
+import gov.usgs.wma.mlrgateway.Creation;
 import gov.usgs.wma.mlrgateway.GatewayReport;
+import gov.usgs.wma.mlrgateway.Modification;
 import gov.usgs.wma.mlrgateway.controller.WorkflowController;
 import gov.usgs.wma.mlrgateway.service.ChangePublishingService;
 import gov.usgs.wma.mlrgateway.service.DdotService;
@@ -38,6 +40,7 @@ import gov.usgs.wma.mlrgateway.service.FileExportService;
 import gov.usgs.wma.mlrgateway.service.LegacyCruService;
 import gov.usgs.wma.mlrgateway.service.LegacyValidatorService;
 import gov.usgs.wma.mlrgateway.service.LegacyTransformerService;
+import org.mockito.ArgumentCaptor;
 
 @ExtendWith(SpringExtension.class)
 public class LegacyWorkflowServiceTest extends BaseSpringTest {
@@ -92,6 +95,7 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		verify(legacyCruService, never()).patchTransaction(anyString(), anyString(), anyString(), any());
 		verify(fileExportService, never()).exportAdd(anyString(), anyString(), anyString(), any());
 		verify(fileExportService, never()).exportUpdate(anyString(), anyString(), anyString(), any());
+		verify(changePublishingService, never()).publish(any(), any());
 		assertEquals(rtn.getSites().get(0).isSuccess(), false);
 		assertEquals(rtn.getSites().get(0).getSteps().get(0).isSuccess(), false);
 		assertNull(rtn.getSites().get(0).getTransactionType());
@@ -122,6 +126,7 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		verify(legacyCruService, never()).patchTransaction(anyString(), anyString(), anyString(), any());
 		verify(fileExportService).exportAdd(anyString(), anyString(), eq(null), any());
 		verify(fileExportService, never()).exportUpdate(anyString(), anyString(), anyString(), any());
+		verify(changePublishingService).publish(any(Creation.class), any());
 		assertFalse(rtn.getSites().get(0).isSuccess());
 		assertFalse(rtn.getSites().get(0).getSteps().get(0).isSuccess());
 		assertEquals(rtn.getSites().get(0).getSteps().get(0).getHttpStatus().toString(), "400");
@@ -151,6 +156,7 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		verify(transformService).transformGeo(anyMap(), any());
 		verify(legacyCruService).addTransaction(anyString(), anyString(), anyString(), any());
 		verify(fileExportService).exportAdd(anyString(), anyString(), eq(null), any());
+		verify(changePublishingService).publish(any(Creation.class), any());
 		assertTrue(rtn.getSites().get(0).isSuccess());
 		assertEquals(rtn.getSites().get(0).getTransactionType(), LegacyWorkflowService.TRANSACTION_TYPE_ADD);
 	}
@@ -184,6 +190,7 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		verify(transformService).transformGeo(anyMap(), any());
 		verify(legacyCruService).patchTransaction(anyString(), anyString(), anyString(), any());
 		verify(fileExportService).exportUpdate(anyString(), anyString(), eq(null), any());
+		verify(changePublishingService).publish(any(Modification.class), any());
 		assertTrue(rtn.getSites().get(0).isSuccess());
 		// Confirm record to be updated doesn't have contain the coordinateDatumCode because lat/long wasn't submitted to be updated
 		assertNull(mlValid.get(LegacyWorkflowService.COORDINATE_DATUM_CODE));
@@ -220,6 +227,7 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		verify(transformService).transformGeo(anyMap(), any());
 		verify(legacyCruService).patchTransaction(anyString(), anyString(), anyString(), any());
 		verify(fileExportService).exportUpdate(anyString(), anyString(), eq(null), any());
+		verify(changePublishingService).publish(any(Modification.class), any());
 		assertTrue(rtn.getSites().get(0).isSuccess());
 		assertEquals(LegacyWorkflowService.TRANSACTION_TYPE_UPDATE, rtn.getSites().get(0).getTransactionType());
 		// Confirm record to be updated has the coordinateDatumCode from the existingRecord
@@ -245,6 +253,7 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		verify(transformService).transformStationIx(anyMap(), any());
 		verify(legacyValidatorService).doValidation(anyMap(), anyMap(), eq(true), any());
 		verify(legacyValidatorService, never()).doValidation(anyMap(), anyMap(), eq(false), any());
+		verify(changePublishingService, never()).publish(any(), any());
 		assertTrue(rtn.getSites().get(0).isSuccess());
 	}
 
@@ -265,6 +274,7 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		verify(transformService).transformStationIx(anyMap(), any());
 		verify(legacyValidatorService).doValidation(anyMap(), anyMap(), eq(false), any());
 		verify(legacyValidatorService, never()).doValidation(anyMap(), anyMap(), eq(true), any());
+		verify(changePublishingService, never()).publish(any(), any());
 		assertTrue(rtn.getSites().get(0).isSuccess());
 	}
 
@@ -288,6 +298,7 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		assertEquals(rtn.getSites().get(0).getSteps().get(0).getName(), LegacyWorkflowService.VALIDATE_DDOT_TRANSACTION_STEP);
 		verify(ddotService).parseDdot(any(MultipartFile.class));
 		verify(legacyValidatorService).doValidation(anyMap(), anyMap(), anyBoolean(), any());
+		verify(changePublishingService, never()).publish(any(), any());
 	}
 	
 	@Test
@@ -307,6 +318,7 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		verify(legacyValidatorService).doPKValidation(anyMap(), anyMap(), any());
 		verify(legacyCruService).updateTransaction(anyString(), anyString(), any());
 		verify(fileExportService).exportChange(anyString(), any());
+		verify(changePublishingService).publish(any(Modification.class), any());
 		assertTrue(rtn.getSites().get(0).isSuccess());
 		assertEquals(rtn.getSites().get(0).getTransactionType(), LegacyWorkflowService.TRANSACTION_TYPE_UPDATE);
 	}
@@ -335,6 +347,7 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		assertEquals(LegacyWorkflowService.PRIMARY_KEY_UPDATE_TRANSACTION_STEP, rtn.getSites().get(1).getSteps().get(0).getName());
 		verify(legacyValidatorService).doPKValidation(anyMap(), anyMap(), any());
 		verify(legacyCruService, never()).updateTransaction(anyString(), anyString(), any());
+		verify(changePublishingService, never()).publish(any(), any());
 	}
 	
 	@Test
@@ -358,6 +371,7 @@ public class LegacyWorkflowServiceTest extends BaseSpringTest {
 		verify(legacyValidatorService, never()).doPKValidation(anyMap(), anyMap(), any());
 		verify(legacyCruService, never()).updateTransaction(anyString(), anyString(), any());
 		verify(fileExportService, never()).exportChange(eq(null), any());
+		verify(changePublishingService, never()).publish(any(), any());
 	}
 	
 }
