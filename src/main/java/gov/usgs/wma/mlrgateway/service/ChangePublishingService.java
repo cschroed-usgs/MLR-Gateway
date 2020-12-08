@@ -39,11 +39,11 @@ public class ChangePublishingService {
 	@Autowired
 	public ChangePublishingService(
 		@Qualifier("SnsChangeTopicArn") String snsChangeTopicArn,
-		@Qualifier("AwsEndpointUri") URI awsEndpointUri
+		@Qualifier("SnsEndpointUri") URI snsEndpointUri
 	) {
 		
 		this(
-			SnsClient.builder().endpointOverride(awsEndpointUri).build(),
+			SnsClient.builder().endpointOverride(snsEndpointUri).build(),
 			snsChangeTopicArn,
 			new ObjectMapper()
 		);

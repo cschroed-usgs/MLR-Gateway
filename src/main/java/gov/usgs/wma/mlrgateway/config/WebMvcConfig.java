@@ -38,7 +38,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 		return Clock.systemDefaultZone();
 	}
 	
-	@Value("${aws.changeSnsArn}")
+	@Value("${sns.changeSnsArn}")
 	private String snsChangeTopicArn;
 	
 	@Bean
@@ -47,12 +47,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
 		return snsChangeTopicArn;
 	}
 	
-	@Value("${aws.endpoint}")
-	private String awsEndpoint;
+	@Value("${sns.endpoint}")
+	private String snsEndpoint;
 	
 	@Bean
-	@Qualifier("AwsEndpointUri")
-	public URI awsEndpoint() throws URISyntaxException {
-		return new URI(awsEndpoint);
+	@Qualifier("SnsEndpointUri")
+	public URI snsEndpoint() throws URISyntaxException {
+		return new URI(snsEndpoint);
 	}
 }

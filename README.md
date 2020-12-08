@@ -99,7 +99,11 @@ The related environment variables are listed below:
 - mlrgateway_ribbonReadTimeout - maximum milliseconds to wait for a response from a microservice
 - mlrgateway_hystrixThreadTimeout - maximum milliseconds for a request to process
 - mlrgateway_springFrameworkLogLevel - log level for org.springframework
-
+- mlrgateway_snsEndpoint - URL endpoint for SNS. ex: https://sns.us-west-2.amazonaws.com
+- mlrgateway_changeSnsArn - ARN for the SNS for publishing monitoring location change
+- AWS_REGION - us-west-2 etc
+- AWS_ACCESS_KEY_ID - access key id on AWS or any placeholder string locally
+- AWS_SECRET_ACCESS_KEY - access key on AWS or any placeholder string locally
 ## Running the Application via Docker
 
 This application can be run locally using the docker container built during the build process or by directly building and running the application JAR. The included `docker-compose` file has 3 profiles to choose from when running the application locally:
