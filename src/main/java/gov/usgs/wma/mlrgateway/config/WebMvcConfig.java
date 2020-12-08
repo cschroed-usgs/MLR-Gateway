@@ -1,5 +1,7 @@
 package gov.usgs.wma.mlrgateway.config;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Clock;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,12 +38,21 @@ public class WebMvcConfig implements WebMvcConfigurer {
 		return Clock.systemDefaultZone();
 	}
 	
-	@Value("${SnsChangeTopicArn}")
+	@Value("${aws.changeSnsArn}")
 	private String snsChangeTopicArn;
 	
 	@Bean
 	@Qualifier("SnsChangeTopicArn")
 	public String snsChangeTopicArn() {
 		return snsChangeTopicArn;
+	}
+	
+	@Value("${aws.endpoint}")
+	private String awsEndpoint;
+	
+	@Bean
+	@Qualifier("AwsEndpointUri")
+	public URI awsEndpoint() throws URISyntaxException {
+		return new URI(awsEndpoint);
 	}
 }

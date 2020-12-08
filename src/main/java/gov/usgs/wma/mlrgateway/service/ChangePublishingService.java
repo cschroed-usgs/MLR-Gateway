@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.usgs.wma.mlrgateway.Change;
 import gov.usgs.wma.mlrgateway.SiteReport;
 import gov.usgs.wma.mlrgateway.StepReport;
-import java.util.Map;
+import java.net.URI;
 import java.util.UUID;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
@@ -38,12 +37,20 @@ public class ChangePublishingService {
 	
 	//Runtime constructor
 	@Autowired
-	public ChangePublishingService(@Qualifier("SnsChangeTopicArn")String snsChangeTopicArn) {
-		this(SnsClient.create(), snsChangeTopicArn, new ObjectMapper());
+	public ChangePublishingService(
+		@Qualifier("SnsChangeTopicArn") String snsChangeTopicArn,
+		@Qualifier("AwsEndpointUri") URI awsEndpointUri
+	) {
+		
+		this(
+			SnsClient.builder().endpointOverride(awsEndpointUri).build(),
+			snsChangeTopicArn,
+			new ObjectMapper()
+		);
 	}
 	
 	//Test-time constructor
-	public ChangePublishingService(SnsClient snsClient, String snsChangeTopicArn, ObjectMapper objectMapper) {
+	ChangePublishingService(SnsClient snsClient, String snsChangeTopicArn, ObjectMapper objectMapper) {
 		this.snsClient = snsClient;
 		this.snsChangeTopicArn = snsChangeTopicArn;
 		this.objectMapper = objectMapper;
@@ -73,6 +80,7 @@ public class ChangePublishingService {
 				);
 				siteReport.addStepReport(successfulStepReport());
 			} catch (Exception ex) {
+				//Coordinate any changes to this log message with App Support
 				String msg = String.format(
 					"%s An error occurred while publishing to SNS.\tTopic ARN=%s\tGroup ID=%s\tDeduplication Id=%s\tMessage=%s",
 					ERROR_LOG_MESSAGE_PREFIX,
@@ -86,6 +94,7 @@ public class ChangePublishingService {
 				throw new RuntimeException(PUBLISHING_ERROR, ex);
 			}
 		} catch (JsonProcessingException ex) {
+			//Coordinate any changes to this log message with App Support
 			String msg = String.format(
 				"%s Unable to serialize changes for %s %s %s. Aborting prior to publishing changes.",
 				ERROR_LOG_MESSAGE_PREFIX,
