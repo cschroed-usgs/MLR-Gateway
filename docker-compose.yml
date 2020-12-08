@@ -17,7 +17,9 @@
 
   services:
     mlr-gateway:
-      build: .
+      build: 
+        context: .
+        network: host
       image: mlr-gateway
       ports:
         - "6026:6026"
@@ -29,7 +31,9 @@
         - ./docker/secrets.env
       
     mlr-gateway-local-dev:
-      build: .
+      build:
+        context: .
+        network: host
       image: mlr-gateway
       network_mode: "host"
       ports:
@@ -42,7 +46,9 @@
         - ./docker/secrets.env
 
     mlr-gateway-debug:
-      build: .
+      build:
+        context: .
+        network: host
       image: mlr-gateway
       network_mode: "host"
       ports:
